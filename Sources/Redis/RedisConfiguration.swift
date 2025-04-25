@@ -10,6 +10,7 @@ public struct RedisConfiguration: Sendable {
     public typealias ValidationError = RedisConnection.Configuration.ValidationError
 
     public var serverAddresses: [SocketAddress]
+    public var username: String?
     public var password: String?
     public var database: Int?
     public var pool: PoolOptions
@@ -66,6 +67,7 @@ public struct RedisConfiguration: Sendable {
         try self.init(
             hostname: host,
             port: url.port ?? RedisConnection.Configuration.defaultPort,
+            username: url.user,
             password: url.password,
             tlsConfiguration: defaultTLSConfig,
             database: Int(url.lastPathComponent),
@@ -76,6 +78,7 @@ public struct RedisConfiguration: Sendable {
     public init(
         hostname: String,
         port: Int = RedisConnection.Configuration.defaultPort,
+        username: String? = nil,
         password: String? = nil,
         tlsConfiguration: TLSConfiguration? = nil,
         database: Int? = nil,
@@ -85,6 +88,7 @@ public struct RedisConfiguration: Sendable {
 
         try self.init(
             serverAddresses: [.makeAddressResolvingHost(hostname, port: port)],
+            username: username,
             password: password,
             tlsConfiguration: tlsConfiguration,
             tlsHostname: hostname,
@@ -95,6 +99,7 @@ public struct RedisConfiguration: Sendable {
 
     public init(
         serverAddresses: [SocketAddress],
+        username: String? = nil,
         password: String? = nil,
         tlsConfiguration: TLSConfiguration? = nil,
         tlsHostname: String? = nil,
@@ -102,6 +107,7 @@ public struct RedisConfiguration: Sendable {
         pool: PoolOptions = .init()
     ) throws {
         self.serverAddresses = serverAddresses
+        self.username = username
         self.password = password
         self.tlsConfiguration = tlsConfiguration
         self.tlsHostname = tlsHostname
@@ -117,6 +123,7 @@ extension RedisConnectionPool.Configuration {
             maximumConnectionCount: config.pool.maximumConnectionCount,
             connectionFactoryConfiguration: .init(
                 connectionInitialDatabase: config.database,
+                connectionUsername: config.username,
                 connectionPassword: config.password,
                 connectionDefaultLogger: defaultLogger,
                 tcpClient: customClient
