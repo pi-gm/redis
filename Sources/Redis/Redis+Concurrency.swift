@@ -54,30 +54,6 @@ extension Application.Redis {
     }
 }
 
-extension RedisClient {
-    /// Gets the provided key as a decodable type.
-    public func get<D>(_ key: RedisKey, asJSON type: D.Type, jsonDecoder: JSONDecoder = JSONDecoder()) async throws -> D?
-        where D: Decodable
-    {
-        let data = try await self.get(key, as: Data.self).get()
-        return try data.flatMap { try jsonDecoder.decode(D.self, from: $0) }
-    }
-
-    /// Sets key to an encodable item.
-    public func set<E>(_ key: RedisKey, toJSON entity: E, jsonEncoder: JSONEncoder = JSONEncoder()) async throws
-        where E: Encodable
-    {
-        try await self.set(key, to: jsonEncoder.encode(entity)).get()
-    }
-    
-    /// Sets key to an encodable item with an expiration time.
-    public func setex<E>(_ key: RedisKey, toJSON entity: E, expirationInSeconds expiration: Int, jsonEncoder: JSONEncoder = JSONEncoder()) async throws
-        where E: Encodable
-    {
-        try await self.setex(key, to: jsonEncoder.encode(entity), expirationInSeconds: expiration).get()
-    }
-}
-
 extension Request.Redis {
     public func send(command: String, with arguments: [RESPValue]) async throws -> RESPValue {
         try await self.request.application.redis(self.id)
